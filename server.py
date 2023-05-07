@@ -1,23 +1,20 @@
-# first of all import the socket library
 import socket            
 import threading
 from _thread import *
 import time
+import loginpage as app
 
 thread_count=0
 status_dict={}
-#information_dict={}
- 
+friends_dict={}
+port_dict={}
 socket_dict={}
-# next create a socket object
+
 s = socket.socket()        
 print ("Socket successfully created")
  
-# reserve a port on your computer in our
-# case it is 12345 but it can be anything
-port = 12394
+port = 12345
  
-# Next bind to the port
 try:
   s.bind(('', port))    
   s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)            
@@ -28,46 +25,45 @@ except socket.error as e:
 
 
 def multi_threaded_client(c,addr):
-  c.send(str.encode('Welcome to P2P chat! You are now online! Who would you like to chat with?'))
-
-  time.sleep(30)
+  print("addr: ", addr)
+  time.sleep(10)
+  username = c.recv(1024).decode()
+  username = username[1:]
+  port_dict[username] = addr[1]
+  friends_dict[username] = "Online"
+  data = "0"
   while True:
-    data = c.recv(1024).decode()
-    data = data[1:]
-    print('reply: ',data)
-    if data in status_dict and status_dict[data] == "online" and c.getpeername() != data:
+    while True:
+      data = c.recv(1024).decode()
+      if not data:
+        continue
+      if data!="0":
+        break
+    if data in friends_dict and friends_dict[data] == "Online":
       try:
-        c.send(str.encode('{} {} {}'.format(data, socket_dict[data], 50055)))
+        c.send(str.encode(str(addr[0])+" "+str(port_dict[data])+" "+"50055"+" "+str(friends_dict[data])))
         print("Information successfully sent to client...")
         print("Listening for new connections...")
       except:
         raise Exception("Error sending msg to client")
     else:
-      c.send(str.encode('{} {}'.format('Offline', data)))
-
-      #data = c.recv(1024).decode()
+      c.send(str.encode('Offline'))
     break
       
 
 
 while True:
-        #s.close()
         s.listen(5)    
         print ("socket is listening")           
         
-        # a forever loop until we interrupt it or
-        # an error occurs
         c, addr = s.accept()
-        #try: 
        
         print ('Got connection from', addr )
         status_dict[addr[0]]= "online"
-        socket_dict[addr[0]] = addr[1]
-        print("status: ", status_dict)
-        
-      
+        socket_dict[addr[1]] = "online"
         
         #CALL MLTIPLE CLINT FUNC HERE
         start_new_thread(multi_threaded_client, (c, addr, ))
         thread_count += 1
+       
        
