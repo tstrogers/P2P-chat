@@ -28,5 +28,7 @@ Example chat screen:
 
 The server keeps listening continuously for new connections in order to connect new people to chat.
 
+These scripts can be used by cloning the git repository and running pip install -r requirements.txt in a terminal at the folder that contains the cloned repository to download the necessary dependencies. The server script should be run first, followed by the client script. 
+
 Database: SQL lite
 
