@@ -16,6 +16,7 @@ If this person is not available to chat, the server makes this known via a messa
 Any sent messages are stored in an sql database on the client side. These messages are sent once the two people are online again and connect. 
 
 If the person is available to chat, the rendezvous server exchanges information between the pairs and allows them to connect.
+
 <img width="678" alt="Screenshot 2023-05-07 at 1 50 15 AM" src="https://user-images.githubusercontent.com/93225913/236660153-8bcc0b4b-e6d4-477e-8d1a-861c6427a800.png">
 
 <img width="681" alt="Screenshot 2023-05-07 at 1 50 08 AM" src="https://user-images.githubusercontent.com/93225913/236660157-ab0e3e7f-12f1-4e5e-ac4f-8ea43b5c71eb.png">
