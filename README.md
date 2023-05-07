@@ -21,6 +21,10 @@ If the person is available to chat, the rendezvous server exchanges information 
 
 <img width="681" alt="Screenshot 2023-05-07 at 1 50 08 AM" src="https://user-images.githubusercontent.com/93225913/236660157-ab0e3e7f-12f1-4e5e-ac4f-8ea43b5c71eb.png">
 
+Example chat screen:
+
+<img width="819" alt="Screenshot 2023-05-07 at 1 21 03 AM" src="https://user-images.githubusercontent.com/93225913/236661054-27bcfea8-333b-4190-b424-9935471bf059.png">
+
 
 The server keeps listening continuously for new connections in order to connect new people to chat.
 
