@@ -4,19 +4,20 @@ import threading
 import time
 import sqlite3
 import PySimpleGUI as sg
+import loginpage as app
 
 class chatter:
 
+    contact_name = ""
     ip = ''
+    global_status = ""
+    global_dport = None
+
 
     def __init__(self,ip,sport,dport):
         self.ip = ip
         self.sport = sport
         self.dport = dport
-
-        # punch hole
-        # equiv: echo 'punch hole' | nc -u -p 50001 x.x.x.x 50002
-        print('punching hole')
 
 
         print('\ngot peer')
@@ -77,7 +78,60 @@ class chatter:
             con.commit()
             if msg == 'exit':
                 break
+global_dport = None
+global_status = ""
+s = socket.socket()
+def connect_to_server():
+    port = 12345
+    s.connect((chatter.ip,port))
+    s.sendto(b'0', (chatter.ip,port))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+def send_name_to_server(name):
+    msg = name
+    s.sendto(msg.encode(), (chatter.ip, 12382))
+
+def listen(dport):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('0.0.0.0', dport))
+
+        while True:
+            data = sock.recv(1024)
+            print('\rpeer: {}\n> '.format(data.decode()), end='')
+            if data == 'exit':
+                sock.close()
+                break
+
+def receive_peer_info():
+    data = s.recv(1024).decode()
+    if data == "Offline":
+        global global_status
+        global_status = "Offline"
+
+    else:
+        ip, sport, dport, status = data.split(' ')
+        sport = int(sport)
+        dport = int(dport)
+        print("ip: ", ip)
+        print("sport: ", sport)
+        print("dport: ", dport)
+        print("status: ", status)
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.bind(('0.0.0.0', sport))
+        sock.sendto(b'0', (ip, dport))
+
+        print('ready to exchange messages\n')
+        listener = threading.Thread(target=listen, args=(dport,), daemon=True);
+        listener.start()
+
+        #sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #sock.bind(('0.0.0.0', dport))
+
+        while True:
+            msg = input('> ')
+            sock.sendto(msg.encode(), (ip, sport))
 
 
 def main(argv):
@@ -85,70 +139,9 @@ def main(argv):
     cur = con.cursor()
     peer_info = None
 
-    #window = sg.Window(title="Welcome to Zap Chat!", layout=[[]], margins=(100, 50))
-    #layout = [[sg.Text("Welcome to Zap Chat!")], [sg.Button("Close")]]
-
-    # Create the window
-    #window = sg.Window("Demo", layout, margins=(100, 50))
-
-    # Create an event loop
-    #while True:
-    #    event, values = window.read()
-        # End program if user closes window or
-        # presses the OK button
-    #    if event == "Close" or event == sg.WIN_CLOSED:
-    #        break
-
-    #window.close()
-
-
-     s = socket.socket()
-     port = 12394
-     s.connect((chatter.ip,port))
-     s.sendto(b'0', (chatter.ip,port))
+    app.start()
     
-     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-     while True:
-         data = s.recv(1024).decode()
-         print('data: ', data)
-         msg = input("Enter the users IP address: ")
-         s.sendto(msg.encode(), (chatter.ip, 12382))
-         time.sleep(60)
-         data = s.recv(1024).decode()
-         print("data: ", data)
-         if not data:
-             raise Exception("No data was received")
-         else:
-             peer_info = data
-             break
-      
-     if  peer_info.split(' ')[0] == 'Offline':
-         ip =  peer_info.split(' ')[1]
-         sport = 'offline'
-         dport = 'offline'
-     else:
-         ip, sport, dport = peer_info.split(' ')
-         sport = int(sport)
-         dport = int(dport)
-
-     print('\ngot peer')
-     print('  ip:          {}'.format(ip))
-     print('  source port: {}'.format(sport))
-     print('  dest port:   {}\n'.format(dport))
-
-     if  peer_info.split(' ')[0] == 'Offline':
-         print('This user is currently offline. Any messages sent will be saved and sent when they log on again')
-     else:
-         print('ready to exchange messages\n')
-
-    
-     chat = chatter(ip,sport,dport)#argv[0],argv[1],argv[2])
-     if  peer_info.split(' ')[0] == 'Offline':
-         chat.startOfflineChat()
-     else:
-         chat.startChat()
-
 if __name__ == "__main__":
 
      main(sys.argv[1:])
